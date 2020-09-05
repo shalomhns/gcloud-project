@@ -1,0 +1,119 @@
+# LAB: Google Cloud Fundamentals: Getting Started with Compute Engine
+# Objectives:
+In this lab, you will learn how to perform the following tasks:
+   
+    -Create a Compute Engine virtual machine using the Google Cloud Platform (GCP) Console.
+    -Create a Compute Engine virtual machine using the gcloud command-line interface.
+    -Connect between the two instances.
+
+# Steps:
+1: Create a virtual machine using the GCP Command LIne:
+
+1a: -Create an Instance page, for Name, type my-vm-1
+    -For Region and Zone, select the region and zone assigned by Qwiklabs.
+    -For Machine type, accept the default.
+    -For Boot disk, if the Image shown is not Debian GNU/Linux 9 (stretch), click Change and select Debian GNU/Linux 9 (stretch).
+    -Leave the defaults for Identity and API access unmodified.
+    -For Firewall, click Allow HTTP traffic.
+    -Leave all other defaults unmodified.
+
+        gcloud compute instances Create my-vm-1 --machine-type "n1-standard-1" --image-project "debian-cloud" --image "debian-9-stretch-v20190213" --subnet "default" --tags http
+
+        gcloud compute firewall-rules create allow-http --action=Allow --destination=INGRESS --rules=http=80 --target-tags=http
+
+
+2a:  Creating a second virtual machine using the gcloud command line:
+     You need to choose a zone other than the one assign  to you in the prevous vm creation. Hence you need to meke use of the grep tools to output list of zones to choose from the region.
+     Therefore To display a list of all the zones in the region to which Qwiklabs assigned you followed by the region that Qwiklabs or your instructor assigned you to:
+ 
+        gcloud compute zones list | grep us-central1
+
+2b: Choose a zone from that list other than the zone to which Qwiklabs assigned you. For example, if Qwiklabs assigned you to region us-central1 and zone us-central1-a you might choose zone us-central1-b
+
+2c: To set your default zone to the one you just chose, enter this partial command gcloud config set compute/zone followed by the zone you chose
+    the completed command looks like this:
+
+        gcloud config set compute/zone us-central1-b
+
+2d: To create a VM instance called my-vm-2 in that zone, execute this command:
+
+        gcloud compute instances create "my-vm-2" --machine-type "n1-standard-1" --image-project "debian-cloud" --image "debian-9-stretch-v20190213" --subnet "default"
+
+    # Note: Its take like two minute to be available.
+
+
+3: Connect between VM instances
+
+3a: Use the ping command to confirm that my-vm-2 can reach my-vm-1 over the network:
+    -connect to my-vm-2:
+     
+     gcloud compute ssh my-vm-2
+
+3b: Use the ping command to confirm that my-vm-2 can reach my-vm-1 over the network
+
+        ping -c 4 my-vm-1
+
+    #Notice that the output of the ping command reveals that the complete 
+    hostname of my-vm-1 is my-vm-1.c.PROJECT_ID.internal, where PROJECT_ID 
+    is the name of your Google Cloud Platform project. GCP automatically 
+    supplies Domain Name Service (DNS) resolution for the internal IP 
+    addresses of VM instances.
+
+3c:Use the ssh command to open a command prompt on my-vm-1:
+
+        ssh my-vm-1
+
+3d: At the command prompt on my-vm-1, install the Nginx web server
+
+        sudo apt-get install nginx-light -y
+
+3e: Use the nano text editor to add a custom message to the home page of the web server
+
+
+        sudo nano /var/www/html/index.nginx-debian.html
+
+3d:Use the arrow keys to move the cursor to the line just below the h1 header. Add text like this, 
+   and replace YOUR_NAME with your name:
+
+        Hi from Adeyemi O Samson
+
+3e: Press Ctrl+O and then press Enter to save your edited file, and then press Ctrl+X to exit the 
+    nano text editor
+
+3f: Confirm that the web server is serving your new page. At the command prompt on my-vm-1, 
+    execute this command
+
+
+        curl http://localhost/
+
+    #Response : The response will be the HTML source of the web server's home page, including your 
+    line of custom text.
+
+3g: To exit the command prompt on my-vm-1, execute this command:
+
+        exit
+
+    #Note: You will return to the command prompt on my-vm-2
+
+3h: To confirm that my-vm-2 can reach the web server on my-vm-1, at the command prompt on my-vm-2, 
+    execute this command:
+
+    curl http://my-vm-1/
+
+    #Response: The response will again be the HTML source of the web server's home page, including 
+    your line of custom text
+
+3i: How to get the external IP of my-vm-1 instance from command line:
+
+    gcloud compute instance list
+
+3j: copy and paste the output external IP address of my-vm-1 into a new browser tab and press enter.
+
+
+    #Response: You will see your web server's home page, including your custom text.
+
+    #Note: If you forgot to click Allow HTTP traffic when you created the my-vm-1 VM instance, your 
+     attempt to reach your web server's home page will fail. You can add a firewall rule to allow 
+     inbound traffic to your instances, although this topic is out of scope for this course.
+    
+

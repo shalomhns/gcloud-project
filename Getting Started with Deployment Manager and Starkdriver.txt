@@ -1,0 +1,142 @@
+#LAB: Google Cloud Fundamentals: Getting Started with Deployment Manager and Cloud Monitoring
+
+#Objective: In this lab, you will learn how to perform the following tasks:
+
+    -Create a Deployment Manager deployment.
+    -Update a Deployment Manager deployment.
+    -View the load on a VM instance using Cloud Monitoring.
+
+#STEPS:
+
+1: Enable the following APIs and Services:
+    
+    -Cloud Deployment Manager v2 API
+    -Cloud Runtime Configuration API
+    -Cloud Monitoring API
+#Enter the following to display the project IDs for your Google Cloud projects: 
+
+        gcloud projects list
+
+#Using the applicable project ID from the previous step, set the default project to the one in which you want to enable the API
+
+        gcloud config set project YOUR_PROJECT_ID
+
+#Get a list of services that you can enable in your project
+
+        gcloud services list --available
+
+#Using the applicable service name from the previous step, enable the service
+
+        gcloud services enable SERVICE_NAME
+
+    For Example:
+
+        gcloud Services enable "Cloud Deployment Manager v2 API" "Cloud Runtime Configuration API" "Cloud Monitoring API"
+
+2: Define the environment variable containing prefer gcp zone:
+
+        export MY_ZONE=us-central1-f
+
+    Already have environment variable containing gcp project Id:
+
+        echo $DEVSHEL_PROJECT_ID
+
+2b:At the Cloud Shell prompt, download an editable Deployment Manager template
+
+        gsutil cp gs://cloud-training/gcpfcoreinfra/mydeploy.yaml mydeploy.yaml
+
+2c: Create a deployment manager using a text editor
+
+        nano mydeploy.yaml
+    
+# Paste the template into the text editor, the template define a virtual machine as a resource
+  name: my-vm, it is define to have a startup script "apt-get update" which calls database application to 
+  be updated.
+
+  Beware that the syntax of deployment manager requires you to specify the require
+  zone in a few places and the gcp project idea in a few places.
+  We all subtitute them into these file using the "sed" command then write the file out to disk.
+  Then use the "sed" to subtitute in our project Id
+
+    
+        sed -i -e "s/PROJECT_ID/$DEVSHELL_PROJECT_ID/" mydeploy.yaml
+
+2d: We use the "sed" command to subtitute in our prefared zone
+
+            sed -i -e "s/ZONE/$MY_ZONE/" mydeploy.yaml
+
+    When you look at the file again to see the result you will see that your 
+    gcp zone will be subtituted with the template as in the PROJECT_ID
+
+
+        nano mydeploy.yaml
+
+
+    Then we are ready to build a deployment from these template
+
+        gcloud deployment-manager deployments create my-first-depl --config mydeploy.yaml
+
+    We can confirm the status using the gcloud command:
+
+        gcloud deployment-manager deployment list
+
+    These will list our deployment named:
+
+        my-fist-depl
+
+# Now let make change to our template
+
+    nano mydeploy.yaml
+
+# We can add a command to startup script 
+
+
+          value: "apt-get update; apt-get install nginx-light -y"
+
+    These command install the nginx light server
+
+#Press Ctrl+O and then press Enter to save your edited file
+
+#Press Ctrl+X to exit the nano text editor.
+
+
+# To update our deployment
+
+
+    gcloud deployment-manager deployments update my-first-depl --config mydeploy.yaml 
+
+    When wa go back to our vm-detail page we will see that the startup script will have been updated
+
+# Now we want to put some CPU load on the vm we created and monitor it through Starkdriver
+  Connect to the virtual machine through ssh
+
+    gcloud compute ssh my-vm
+
+2e:In the ssh session on my-vm, execute this command to create a CPU load
+
+    dd if=/dev/urandom | gzip -9 >> /dev/null &
+
+    These linux command create an artificial CPU load on the virtual machine. 
+    It forcess the CPU to continuously attempt to compress a random data.
+
+2d: Now return to the Starkdriver Monitoring set up in the product menu. Scroll down to Starkdriver monitoring 
+    -confirm that you want to create an account
+    -confirm that you need to monitor our gcp project
+    -skip AWS account
+    -No need to install the Starkdriver monitoring agent for this exercise just click continue
+    - we dont need email report for this activity so we click "No report" and continue
+    -Now click lunch monitoring and click continue with the trial
+
+#Note: we will notice our CPU load increase sharply when we started the artificial load
+
+
+2e:Terminate your workload generator. Return to your ssh session on my-vm and enter this command
+
+
+            kill %1
+
+
+
+
+
+    
