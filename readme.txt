@@ -1,0 +1,1 @@
+A list of seventeen completed Quicklab on GCP with three lab completed using command prompt on gcloud
